@@ -13,8 +13,8 @@ from obj_sys.models_ufs_obj import UfsObj
 class GitMsgHandler(MsgProcessCommandBase):
     def register_to_service(self):
         clipboard_receive_channel_name = "clipboard_to_django"
-        channel = self.service.create_channel(clipboard_receive_channel_name)
-        self.service.send_to(ICONIZER_SERVICE_NAME, {"command": "register_to_clipboard",
+        channel = self.ufs_msg_service.create_channel(clipboard_receive_channel_name)
+        self.ufs_msg_service.send_to(ICONIZER_SERVICE_NAME, {"command": "register_to_clipboard",
                                                      "target": channel.get_channel_full_name()})
         return channel
 
