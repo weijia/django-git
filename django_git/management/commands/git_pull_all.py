@@ -28,6 +28,7 @@ class GitMsgHandler(MsgProcessCommandBase):
             print "processing:", path
             p = Puller(path)
             p.pull_all()
+            print "pull and push done"
 
 
 Command = GitMsgHandler
