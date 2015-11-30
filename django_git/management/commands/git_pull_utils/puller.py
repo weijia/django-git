@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from subprocess import PIPE
 import traceback
 import git
@@ -82,14 +83,20 @@ class Puller(object):
         #    return False
         return False
 
+    @staticmethod
+    def is_valid_url(url):
+        if re.match("http(s)*://.+:.+@.+$", url) is None:
+            return False
+        return False
+
     def process_remote_repo(self, branch, remote_repo):
-        if not self.is_ignored(remote_repo.url):
+        if self.is_valid_url(remote_repo.url) and (not self.is_ignored(remote_repo.url)):
             if self.is_repo_ref_valid(remote_repo):
                 for remote_ref in remote_repo.refs:
                     log.warning("remote branch:" + unicode(remote_ref).encode('utf8', 'replace'))
                     # self.pull_and_push_changes(branch, remote_branch, remote_repo)
                     RemoteRepo(remote_repo).pull_and_push_changes(branch, remote_ref)
-                    
+
 try:
     from repo import proj_list, git_path
 except:
