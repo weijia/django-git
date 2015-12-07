@@ -5,6 +5,9 @@ from subprocess import PIPE
 import traceback
 import git
 
+from django_git.management.commands.git_pull_utils.connectivity_manager import ConnectivityManager
+from djangoautoconf.local_key_manager import get_local_key
+
 log = logging.getLogger(__name__)
 
 
@@ -49,6 +52,8 @@ class RemoteRepo(object):
 class Puller(object):
     def __init__(self, full_path):
         self.full_path = full_path
+        self.https_proxy_server = get_local_key("proxy_setting.https_proxy_server")
+        self.connectivity_manager = ConnectivityManager()
 
     def pull_all(self):
         r = git.Repo(self.full_path)
@@ -57,7 +62,24 @@ class Puller(object):
 
         for remote_repo in r.remotes:
             print "remote repo", remote_repo
+            if self.is_proxy_needed(remote_repo):
+                self.set_proxy_env()
+            else:
+                self.unset_proxy_env()
             self.process_remote_repo(local_active_branch, remote_repo)
+
+    def is_proxy_needed(self, repo):
+        server = "http://%s" % repo.url.split("@")[1]
+        return not self.connectivity_manager.is_connectable(server)
+
+    def set_proxy_env(self):
+        os.environ["https_proxy"] = self.https_proxy_server
+
+    def unset_proxy_env(self):
+        try:
+            del os.environ["https_proxy"]
+        except:
+            pass
 
     @staticmethod
     def is_repo_ref_valid(remote_repo):
