@@ -24,6 +24,8 @@ def tag_enumerator(tag_name="git"):
         for tagged_item in tagged_item_list:
             obj_tag = tagged_item.tag.name
             obj = tagged_item.object
+            if obj is None:
+                continue
             path = obj.full_path
             print "processing:", path
             p = Puller(path)
@@ -47,7 +49,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         for url in file_url_list:
             # path = msg["path"]
             # path will be in file://xxxxx format
-            append_tags_and_description_to_url(self.admin_user, url, ["git"], "GIT repository")
+            append_tags_and_description_to_url(self.admin_user, url, "git", "GIT repository")
             path = get_full_path_from_url(url)
             print "processing:", path
             p = Puller(path)
