@@ -39,7 +39,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         channel = self.get_channel("git_puller")
         reg_msg = UserDict({"command": "DropWndV2", "tip": "GIT test", "target": channel.get_channel_full_name()})
         self.ufs_msg_service.send_to(ICONIZER_SERVICE_NAME, reg_msg.data)
-        thread.start_new_thread(tag_enumerator)
+        thread.start_new_thread(tag_enumerator, ())
         return channel
 
     # noinspection PyMethodMayBeStatic
