@@ -29,7 +29,10 @@ def tag_enumerator(tag_name="git"):
             path = obj.full_path
             print "processing:", path
             p = Puller(path)
-            p.pull_all()
+            try:
+                p.pull_all()
+            except:
+                print "Pull error for: %s" % path
             print "auto pull and push done"
         time.sleep(60*5)
 
