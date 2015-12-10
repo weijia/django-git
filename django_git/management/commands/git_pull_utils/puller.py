@@ -52,7 +52,7 @@ class RemoteRepo(object):
 class Puller(object):
     def __init__(self, full_path):
         self.full_path = full_path
-        self.https_proxy_server = get_local_key("django_git.proxy_setting.https_proxy_server")
+        self.https_proxy_server = get_local_key("proxy_setting.https_proxy_server", "django_git")
         self.connectivity_manager = ConnectivityManager()
 
     def pull_all(self):
@@ -126,6 +126,7 @@ try:
 except:
     repo = []
     git_path = 'C:\\Program Files (x86)\\Git\\bin'
+    git_path = 'C:\\Users\\weijia\\AppData\\Local\\Programs\\Git\\bin'
 
 
 def add_git_to_path():
