@@ -1,9 +1,12 @@
+import traceback
 from UserDict import UserDict
 
 import time
 
 import thread
 
+from iconizer.gui_client.notification_service_client import NotificationServiceClient
+from iconizer.msg_service.msg_service_interface.msg_service_factory_interface import MsgServiceFactory
 from tagging.models import Tag
 from tagging.models import TaggedItem
 from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME
@@ -28,10 +31,11 @@ def tag_enumerator(tag_name="git"):
                 continue
             path = obj.full_path
             print "processing:", path
-            p = Puller(path)
+            p = Puller(path, NotificationServiceClient().notify)
             try:
                 p.pull_all()
             except:
+                traceback.print_exc()
                 print "Pull error for: %s" % path
             print "auto pull and push done"
         time.sleep(60*5)
@@ -55,9 +59,13 @@ class GitMsgHandler(MsgProcessCommandBase):
             append_tags_and_description_to_url(self.admin_user, url, "git", "GIT repository")
             path = get_full_path_from_url(url)
             print "processing:", path
-            p = Puller(path)
-            p.pull_all()
-            print "pull and push done"
+            p = Puller(path, NotificationServiceClient().notify)
+            try:
+                p.pull_all()
+                print "pull and push done"
+            except:
+                pass
+                print "error when pull and push"
 
 
 Command = GitMsgHandler

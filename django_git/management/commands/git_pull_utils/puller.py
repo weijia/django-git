@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 class RemoteRepo(object):
     def __init__(self, remote_repo):
         self.remote_repo = remote_repo
+        self.sync_msg = None
 
     @staticmethod
     def get_ref_name(ref):
@@ -21,47 +22,50 @@ class RemoteRepo(object):
 
     def pull_branch(self, branch):
         for remote_ref in self.remote_repo.refs:
-            log.warning("remote ref:", remote_ref)  # origin/master
+            log.info("remote ref:", remote_ref)  # origin/master
             self.pull_and_push_changes(branch, remote_ref, self.remote_repo)
 
     def pull(self, remote_branch_name):
-        print 'pulling changes:', remote_branch_name
+        log.info('pulling changes:', remote_branch_name)
         # Added istream to avoid error: WindowsError: [Error 6] The handle is invalid
         try:
             self.remote_repo.pull(remote_branch_name, istream=PIPE)
         except AssertionError:
-            print 'assert error may be caused by inconsistent log format between git and gitpython'
+            log.error('assert error may be caused by inconsistent log format between git and gitpython')
 
     def push(self, branch, remote_ref):
-        print 'pushing changes'
+        log.info('pushing changes')
         self.remote_repo.push(remote_ref.__str__().split('/')[-1],
                               istream=PIPE)
 
     def pull_and_push_changes(self, branch, remote_ref):
         # print remote_ref#gitbucket/20130313_diagram_rewrite
         if branch.name in self.get_ref_name(remote_ref):
-            print 'remote commit: ', remote_ref.commit, remote_ref.commit.message
+            log.info('remote commit: ', remote_ref.commit, remote_ref.commit.message)
             self.pull(self.get_ref_name(remote_ref))
             if branch.commit != remote_ref.commit:
-                print 'different to remote'
-                print 'latest remote log:', remote_ref.commit.message
+                log.info('different to remote')
+                log.info('latest remote log:', remote_ref.commit.message)
                 self.push(branch, remote_ref)
-                print 'latest local log:', branch.commit.message
+                log.info('latest local log:', branch.commit.message)
+                self.sync_msg = "%s updated to: %s" % (self.remote_repo.url, remote_ref.commit.message)
 
 
 class Puller(object):
-    def __init__(self, full_path):
+    def __init__(self, full_path, callback=None):
         self.full_path = full_path
-        self.https_proxy_server = get_local_key("django_git.proxy_setting.https_proxy_server")
+        self.https_proxy_server = get_local_key("proxy_setting.https_proxy_server", "django_git")
         self.connectivity_manager = ConnectivityManager()
+        self.sync_msg = None
+        self.call_back = callback
 
     def pull_all(self):
         r = git.Repo(self.full_path)
         local_active_branch = r.active_branch
-        print 'current branch:', local_active_branch.name, local_active_branch.commit
+        log.info('current branch:', local_active_branch.name, local_active_branch.commit)
 
         for remote_repo in r.remotes:
-            print "remote repo", remote_repo
+            log.info("remote repo", remote_repo)
             if self.is_proxy_needed(remote_repo):
                 self.set_proxy_env()
             else:
@@ -115,11 +119,17 @@ class Puller(object):
         if self.is_valid_url(remote_repo.url) and (not self.is_ignored(remote_repo.url)):
             if self.is_repo_ref_valid(remote_repo):
                 for remote_ref in remote_repo.refs:
-                    log.warning("remote branch:" + unicode(remote_ref).encode('utf8', 'replace'))
+                    log.info("remote branch:" + unicode(remote_ref).encode('utf8', 'replace'))
                     # self.pull_and_push_changes(branch, remote_branch, remote_repo)
-                    RemoteRepo(remote_repo).pull_and_push_changes(branch, remote_ref)
+                    pulling_repo = RemoteRepo(remote_repo)
+                    pulling_repo.pull_and_push_changes(branch, remote_ref)
+                    if (not (self.call_back is None)) and (not (pulling_repo.sync_msg is None)):
+                        try:
+                            self.call_back(pulling_repo.sync_msg)
+                        except:
+                            pass
         else:
-            "No valid repo url, repo is not synchronized"
+            log.error("No valid pulling_repo url, repo is not synchronized")
 
 try:
     from repo import proj_list, git_path
