@@ -136,6 +136,7 @@ try:
 except:
     repo = []
     git_path = 'C:\\Program Files (x86)\\Git\\bin'
+    git_path = 'C:\\Users\\weijia\\AppData\\Local\\Programs\\Git\\bin'
 
 
 def add_git_to_path():

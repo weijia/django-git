@@ -22,22 +22,24 @@ def get_full_path_from_url(url):
 
 def tag_enumerator(tag_name="git"):
     while True:
-        tag = Tag.objects.get(name=tag_name)
-        tagged_item_list = TaggedItem.objects.filter(tag__exact=tag.pk)
-        for tagged_item in tagged_item_list:
-            obj_tag = tagged_item.tag.name
-            obj = tagged_item.object
-            if obj is None:
-                continue
-            path = obj.full_path
-            print "processing:", path
-            p = Puller(path, NotificationServiceClient().notify)
-            try:
-                p.pull_all()
-            except:
-                traceback.print_exc()
-                print "Pull error for: %s" % path
-            print "auto pull and push done"
+        tag_filter = Tag.objects.filter(name=tag_name)
+        if tag_filter.exists():
+            tag = tag_filter[0]
+            tagged_item_list = TaggedItem.objects.filter(tag__exact=tag.pk)
+            for tagged_item in tagged_item_list:
+                obj_tag = tagged_item.tag.name
+                obj = tagged_item.object
+                if obj is None:
+                    continue
+                path = obj.full_path
+                print "processing:", path
+                p = Puller(path, NotificationServiceClient().notify)
+                try:
+                    p.pull_all()
+                except:
+                    traceback.print_exc()
+                    print "Pull error for: %s" % path
+                print "auto pull and push done"
         time.sleep(60*5)
 
 
