@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import urlparse
 from subprocess import PIPE
 import traceback
 import git
@@ -75,9 +76,14 @@ class Puller(object):
                 self.unset_proxy_env()
             self.process_remote_repo(local_active_branch, remote_repo)
 
+    # noinspection PyMethodMayBeStatic
+    def get_server(self, url):
+        r = urlparse.urlparse(url)
+        return "%s://%s" % (r.scheme, r.hostname)
+
     def is_proxy_needed(self, repo):
-        server = "http://%s" % repo.url.split("@")[1]
-        return not self.connectivity_manager.is_connectable(server)
+        server_url = self.get_server(repo.url)
+        return not self.connectivity_manager.is_connectable(server_url)
 
     def set_proxy_env(self):
         os.environ["https_proxy"] = self.https_proxy_server
