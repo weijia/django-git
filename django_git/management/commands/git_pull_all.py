@@ -1,3 +1,4 @@
+import os
 from UserDict import UserDict
 
 import time
@@ -54,12 +55,13 @@ class GitMsgHandler(MsgProcessCommandBase):
         for url in file_url_list:
             # path = msg["path"]
             # path will be in file://xxxxx format
-            append_tags_and_description_to_url(self.admin_user, url, "git", "GIT repository")
             path = get_full_path_from_url(url)
-            print "processing:", path
-            p = Puller(path)
-            p.pull_all()
-            print "pull and push done"
+            if os.path.exists(os.path.join(path, ".git")):
+                append_tags_and_description_to_url(self.admin_user, url, "git", "GIT repository")
+                print "processing:", path
+                p = Puller(path)
+                p.pull_all()
+                print "pull and push done"
 
 
 Command = GitMsgHandler
