@@ -7,6 +7,7 @@ import git
 
 from django_git.management.commands.git_pull_utils.connectivity_manager import ConnectivityManager
 from djangoautoconf.local_key_manager import get_local_key
+from libtool.app_framework import find_app_in_folders
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +33,8 @@ class RemoteRepo(object):
             self.remote_repo.pull(remote_branch_name, istream=PIPE)
         except AssertionError:
             log.error('assert error may be caused by inconsistent log format between git and gitpython')
+        except Exception, e:
+            traceback.print_exc()
 
     def push(self, branch, remote_ref):
         log.info('pushing changes')
@@ -140,7 +143,9 @@ except:
 
 
 def add_git_to_path():
-    os.environ['PATH'] += ";"+git_path
+    folders = get_local_key("git_path.git_folder", "django_git")
+    folders.append('C:\\Program Files (x86)\\Git\\bin')
+    os.environ['PATH'] += ";"+find_app_in_folders(folders, "git.exe")
     # print os.environ['PATH']
 
 
