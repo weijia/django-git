@@ -1,12 +1,14 @@
 import logging
 import os
 import re
+import urlparse
 from subprocess import PIPE
 import traceback
 import git
 
 from django_git.management.commands.git_pull_utils.connectivity_manager import ConnectivityManager
 from djangoautoconf.local_key_manager import get_local_key
+from libtool.app_framework import find_app_in_folders
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +34,8 @@ class RemoteRepo(object):
             self.remote_repo.pull(remote_branch_name, istream=PIPE)
         except AssertionError:
             log.error('assert error may be caused by inconsistent log format between git and gitpython')
+        except Exception, e:
+            traceback.print_exc()
 
     def push(self, branch, remote_ref):
         log.info('pushing changes')
@@ -72,9 +76,14 @@ class Puller(object):
                 self.unset_proxy_env()
             self.process_remote_repo(local_active_branch, remote_repo)
 
+    # noinspection PyMethodMayBeStatic
+    def get_server(self, url):
+        r = urlparse.urlparse(url)
+        return "%s://%s" % (r.scheme, r.hostname)
+
     def is_proxy_needed(self, repo):
-        server = "http://%s" % repo.url.split("@")[1]
-        return not self.connectivity_manager.is_connectable(server)
+        server_url = self.get_server(repo.url)
+        return not self.connectivity_manager.is_connectable(server_url)
 
     def set_proxy_env(self):
         os.environ["https_proxy"] = self.https_proxy_server
@@ -140,7 +149,9 @@ except:
 
 
 def add_git_to_path():
-    os.environ['PATH'] += ";"+git_path
+    folders = get_local_key("git_path.git_folder", "django_git")
+    folders.append('C:\\Program Files (x86)\\Git\\bin')
+    os.environ['PATH'] += ";"+find_app_in_folders(folders, "git.exe")
     # print os.environ['PATH']
 
 
