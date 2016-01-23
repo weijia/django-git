@@ -38,11 +38,15 @@ class ChangeNotifier(threading.Thread):
 
     def notification_msg_loop(self):
         cnt = 0
-        while not self.need_to_quit:
-            #            print "new watch\n"
+        #            print "new watch\n"
+        try:
             self.dir_handle = win32file.CreateFile(self.path_to_watch, win32con.GENERIC_READ,
-                                             win32con.FILE_SHARE_READ | win32con.FILE_SHARE_WRITE, None,
-                                             win32con.OPEN_EXISTING, win32con.FILE_FLAG_BACKUP_SEMANTICS, None)
+                                         win32con.FILE_SHARE_READ | win32con.FILE_SHARE_WRITE, None,
+                                         win32con.OPEN_EXISTING, win32con.FILE_FLAG_BACKUP_SEMANTICS, None)
+        except:
+            pass
+        while not self.need_to_quit:
+
             results = self.read_changes(self.dir_handle)
             if not self.need_to_quit:
                 for action, file in results:

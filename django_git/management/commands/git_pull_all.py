@@ -79,7 +79,8 @@ class GitMsgHandler(MsgProcessCommandBase):
         # self.is_more_folder_msg_received = False
         self.path_updated = {}
         self.change_notifiers = []
-        self.watching_folders = []
+        # self.watching_folders = []
+        self.watching_folder_to_git_folder = {}
 
     def register_to_service(self):
         channel = self.get_channel("git_puller")
@@ -137,15 +138,15 @@ class GitMsgHandler(MsgProcessCommandBase):
         git_config_folder = os.path.join(git_folder, ".git")
         if not os.path.isdir(git_config_folder):
             git_config_file = open(git_config_folder, 'r')
-            real_git_config_folder = git_config_file.readline().split(": ")[1]
+            real_git_config_folder = git_config_file.readline().split(": ")[1].replace("\r", "").replace("\n", "")
             git_config_folder = os.path.abspath(os.path.join(git_folder, real_git_config_folder))
         git_config_folder = format_path(git_config_folder)
-        if git_config_folder in self.watching_folders:
+        if not (git_config_folder in self.watching_folder_to_git_folder):
             change_notifier = GitFolderChangeNotifier(git_config_folder)
             change_notifier.channel = self.get_channel()
             change_notifier.start()
             self.change_notifiers.append(change_notifier)
-            self.watching_folder.append(git_config_folder)
+            self.watching_folder_to_git_folder[git_config_folder] = git_folder
 
 
 Command = GitMsgHandler
