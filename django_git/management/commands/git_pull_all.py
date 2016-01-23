@@ -82,6 +82,11 @@ class GitMsgHandler(MsgProcessCommandBase):
         self.change_notifiers = []
         # self.watching_folders = []
         self.watching_folder_to_git_folder = {}
+        self.msg_handlers = {DropEventMsg.command: self.process_drop_msg,
+                         FolderChangeNotification.command: self.process_dir_change_msg,
+                         DelayedPullRequest.command: self.process_delayed_pull,
+                         TagEnumeratorMsg.command: self.register_dir_change_notification
+                         }
 
     def register_to_service(self):
         channel = self.get_channel("git_puller")
@@ -93,16 +98,9 @@ class GitMsgHandler(MsgProcessCommandBase):
 
     # noinspection PyMethodMayBeStatic
     def process_msg(self, msg):
-        if msg["command"] == DropEventMsg.command:
-            self.process_drop_msg(msg)
-        if msg["command"] == FolderChangeNotification.command:
-            self.process_dir_change_msg(msg)
-        if msg["command"] == DelayedPullRequest.command:
-            self.process_delayed_pull()
-        if msg["command"] == TagEnumeratorMsg.command:
-            self.register_dir_change_notification(msg)
+        self.msg_handlers[msg["command"]](msg)
 
-    def process_delayed_pull(self):
+    def process_delayed_pull(self, msg):
         remove = []
         for path in self.path_updated:
             if (datetime.datetime.now() - self.path_updated[path]).seconds > 30:
