@@ -105,9 +105,14 @@ class GitMsgHandler(MsgProcessCommandBase):
         remove = []
         for path in self.path_updated:
             if (datetime.datetime.now() - self.path_updated[path]).seconds > 30:
-                self.update_git(path)
+                self.update_git(self.get_git_folder_for_changed_folder_root(path))
+                remove.append(path)
         for path in remove:
             del self.path_updated[path]
+
+    def get_git_folder_for_changed_folder_root(self, git_config_folder):
+        git_folder = format_path(git_config_folder)
+        return self.watching_folder_to_git_folder[git_folder]
 
     def process_dir_change_msg(self, msg):
         changed_path = format_path(msg["path"])
