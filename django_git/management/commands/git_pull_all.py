@@ -69,7 +69,7 @@ class GitFolderChangeNotifier(ChangeNotifier):
         # super(GitFolderChangeNotifier, self).callback(path_to_watch, relative_path, action)
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
-        print path_to_watch, action
+        print path_to_watch, relative_path, action
         self.channel.put_msg(msg)
 
 
@@ -81,6 +81,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         # self.is_more_folder_msg_received = False
         self.path_updated = {}
         self.change_notifiers = []
+        self.watching_folders = []
 
     def register_to_service(self):
         channel = self.get_channel("git_puller")
@@ -133,12 +134,16 @@ class GitMsgHandler(MsgProcessCommandBase):
 
     def register_dir_change_notification(self, msg):
         git_folder = os.path.join(msg["path"], ".git")
-        if os.path.isdir(git_folder):
+        if not os.path.isdir(git_folder):
+            git_config_file = open(git_folder, 'r')
+            git_folder = os.path.abspath(os.path.join(msg["path"], git_config_file))
+        git_folder = format_path(git_folder)
+        if git_folder in self.watching_folders:
             change_notifier = GitFolderChangeNotifier(git_folder)
             change_notifier.channel = self.get_channel()
             change_notifier.start()
             self.change_notifiers.append(change_notifier)
-        # TODO: Will need to handle sub module (.git is just an file) case
+            self.watching_folder.append(git_folder)
 
 
 Command = GitMsgHandler
