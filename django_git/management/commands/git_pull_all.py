@@ -68,7 +68,7 @@ class GitFolderChangeNotifier(ChangeNotifier):
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
         print path_to_watch, relative_path, action
-        if relative_path=="refs\heads":
+        if True:  # relative_path == "heads":
             self.channel.put_msg(msg)
 
 
@@ -146,6 +146,7 @@ class GitMsgHandler(MsgProcessCommandBase):
             git_config_file = open(git_config_folder, 'r')
             real_git_config_folder = git_config_file.readline().split(": ")[1].replace("\r", "").replace("\n", "")
             git_config_folder = os.path.abspath(os.path.join(git_folder, real_git_config_folder))
+        git_config_folder = os.path.join(git_config_folder, "refs/heads")
         git_config_folder = format_path(git_config_folder)
         if not (git_config_folder in self.watching_folder_to_git_folder):
             change_notifier = GitFolderChangeNotifier(git_config_folder)
