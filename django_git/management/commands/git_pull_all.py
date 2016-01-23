@@ -25,7 +25,7 @@ def get_full_path_from_url(url):
 
 
 def tag_enumerator(channel, tag_name="git"):
-    if True:  # while True:
+    while True:
         tag_filter = Tag.objects.filter(name=tag_name)
         if tag_filter.exists():
             tag = tag_filter[0]
@@ -39,9 +39,7 @@ def tag_enumerator(channel, tag_name="git"):
                 path = obj.full_path
                 msg["path"] = path
                 channel.put_msg(msg)
-                pull_and_notify_user(path)
-                print "auto pull and push done"
-        # time.sleep(60*50)
+        time.sleep(60*10)
 
 
 def pull_and_notify_user(path):
@@ -133,17 +131,21 @@ class GitMsgHandler(MsgProcessCommandBase):
                 self.update_git(path)
 
     def register_dir_change_notification(self, msg):
-        git_folder = os.path.join(msg["path"], ".git")
-        if not os.path.isdir(git_folder):
-            git_config_file = open(git_folder, 'r')
-            git_folder = os.path.abspath(os.path.join(msg["path"], git_config_file))
-        git_folder = format_path(git_folder)
-        if git_folder in self.watching_folders:
-            change_notifier = GitFolderChangeNotifier(git_folder)
+        git_folder = msg["path"]
+        pull_and_notify_user(git_folder)
+        print "auto pull and push done"
+        git_config_folder = os.path.join(git_folder, ".git")
+        if not os.path.isdir(git_config_folder):
+            git_config_file = open(git_config_folder, 'r')
+            real_git_config_folder = git_config_file.readline().split(": ")[1]
+            git_config_folder = os.path.abspath(os.path.join(git_folder, real_git_config_folder))
+        git_config_folder = format_path(git_config_folder)
+        if git_config_folder in self.watching_folders:
+            change_notifier = GitFolderChangeNotifier(git_config_folder)
             change_notifier.channel = self.get_channel()
             change_notifier.start()
             self.change_notifiers.append(change_notifier)
-            self.watching_folder.append(git_folder)
+            self.watching_folder.append(git_config_folder)
 
 
 Command = GitMsgHandler
