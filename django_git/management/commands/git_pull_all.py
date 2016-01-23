@@ -68,7 +68,8 @@ class GitFolderChangeNotifier(ChangeNotifier):
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
         print path_to_watch, relative_path, action
-        self.channel.put_msg(msg)
+        if relative_path=="refs\heads":
+            self.channel.put_msg(msg)
 
 
 # noinspection PyAbstractClass
