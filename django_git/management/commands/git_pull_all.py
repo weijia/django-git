@@ -4,16 +4,14 @@ from Queue import Queue
 from UserDict import UserDict
 import time
 import thread
-
 import datetime
-
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
 from iconizer.gui_client.notification_service_client import NotificationServiceClient
 from libtool import format_path
 from tagging.models import Tag
 from tagging.models import TaggedItem
 from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME
-from iconizer.msg_service.msg_def.file_url_list_msg import FileUrlListMsg, DelayedPullRequest, DropEventMsg, \
+from iconizer.msg_service.msg_def.file_url_list_msg import FileUrlListMsg, DelayedMsg, DropEventMsg, \
     TagEnumeratorMsg, FolderChangeNotification
 from obj_sys.obj_tagging import append_tags_and_description_to_url
 from universal_clipboard.management.commands.cmd_handler_base.msg_process_cmd_base import MsgProcessCommandBase
@@ -39,7 +37,7 @@ def tag_enumerator(channel, tag_name="git"):
                 path = obj.full_path
                 msg["path"] = path
                 channel.put_msg(msg)
-        time.sleep(60*10)
+        time.sleep(60 * 10)
 
 
 def pull_and_notify_user(path):
@@ -53,9 +51,9 @@ def pull_and_notify_user(path):
         print "Pull error for: %s" % path
 
 
-def send_recheck_msg(channel):
-    time.sleep(5)
-    channel.put_msg(DelayedPullRequest())
+def send_delayed_msg(channel, delay_seconds=5):
+    time.sleep(delay_seconds)
+    channel.put_msg(DelayedMsg())
 
 
 class GitFolderChangeNotifier(ChangeNotifier):
@@ -74,6 +72,8 @@ class GitFolderChangeNotifier(ChangeNotifier):
 
 # noinspection PyAbstractClass
 class GitMsgHandler(MsgProcessCommandBase):
+    DELAY_PULL_SECONDS = 30
+
     def __init__(self):
         super(GitMsgHandler, self).__init__()
         # self.pull_queue = Queue()
@@ -83,16 +83,19 @@ class GitMsgHandler(MsgProcessCommandBase):
         # self.watching_folders = []
         self.watching_folder_to_git_folder = {}
         self.msg_handlers = {DropEventMsg.command: self.process_drop_msg,
-                         FolderChangeNotification.command: self.process_dir_change_msg,
-                         DelayedPullRequest.command: self.process_delayed_pull,
-                         TagEnumeratorMsg.command: self.register_dir_change_notification
-                         }
+                             FolderChangeNotification.command: self.process_dir_change_msg,
+                             DelayedMsg.command: self.process_delayed_pull,
+                             TagEnumeratorMsg.command: self.register_dir_change_notification
+                             }
 
     def register_to_service(self):
         channel = self.get_channel("git_puller")
         reg_msg = UserDict({"command": "DropWndV2", "tip": "GIT auto pull and push",
                             "target": channel.get_channel_full_name()})
-        self.ufs_msg_service.send_to(ICONIZER_SERVICE_NAME, reg_msg.data)
+        try:
+            self.ufs_msg_service.send_to(ICONIZER_SERVICE_NAME, reg_msg.data)
+        except:
+            pass
         thread.start_new_thread(tag_enumerator, (channel,))
         return channel
 
@@ -103,7 +106,7 @@ class GitMsgHandler(MsgProcessCommandBase):
     def process_delayed_pull(self, msg):
         remove = []
         for path in self.path_updated:
-            if (datetime.datetime.now() - self.path_updated[path]).seconds > 30:
+            if (datetime.datetime.now() - self.path_updated[path]).seconds > self.DELAY_PULL_SECONDS:
                 self.update_git(self.get_git_folder_for_changed_folder_root(path))
                 remove.append(path)
         for path in remove:
@@ -118,7 +121,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         if not (changed_path in self.path_updated):
             self.path_updated[changed_path] = datetime.datetime.now()
         # self.is_more_folder_msg_received = True
-        thread.start_new_thread(send_recheck_msg, (self.get_channel(),))
+        thread.start_new_thread(send_delayed_msg, (self.get_channel(),))
 
     @staticmethod
     def update_git(path):
