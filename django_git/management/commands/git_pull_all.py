@@ -12,7 +12,7 @@ from tagging.models import Tag
 from tagging.models import TaggedItem
 from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME
 from iconizer.msg_service.msg_def.file_url_list_msg import FileUrlListMsg, DelayedMsg, DropEventMsg, \
-    TagEnumeratorMsg, FolderChangeNotification
+    TagEnumeratorMsg, FolderChangeNotification, send_delayed_msg
 from obj_sys.obj_tagging import append_tags_and_description_to_url
 from universal_clipboard.management.commands.cmd_handler_base.msg_process_cmd_base import MsgProcessCommandBase
 from django_git.management.commands.git_pull_utils.puller import Puller
@@ -49,11 +49,6 @@ def pull_and_notify_user(path):
     except:
         traceback.print_exc()
         print "Pull error for: %s" % path
-
-
-def send_delayed_msg(channel, delay_seconds=5):
-    time.sleep(delay_seconds)
-    channel.put_msg(DelayedMsg())
 
 
 class GitFolderChangeNotifier(ChangeNotifier):
