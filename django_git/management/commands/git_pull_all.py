@@ -135,6 +135,8 @@ class GitMsgHandler(MsgProcessCommandBase):
 
     def register_dir_change_notification(self, msg):
         git_folder = msg["path"]
+        if not os.path.exists(git_folder):
+            return
         pull_and_notify_user(git_folder)
         print "auto pull and push done"
         git_config_folder = os.path.join(git_folder, ".git")
