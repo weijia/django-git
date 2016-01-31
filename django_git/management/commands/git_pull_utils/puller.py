@@ -24,11 +24,11 @@ class RemoteRepo(object):
 
     def pull_branch(self, branch):
         for remote_ref in self.remote_repo.refs:
-            log.info("remote ref:", remote_ref)  # origin/master
+            log.info("remote ref: %s" % remote_ref)  # origin/master
             self.pull_and_push_changes(branch, remote_ref, self.remote_repo)
 
     def pull(self, remote_branch_name):
-        log.info('pulling changes:', remote_branch_name)
+        log.info('pulling changes: %s' % remote_branch_name)
         # Added istream to avoid error: WindowsError: [Error 6] The handle is invalid
         try:
             self.remote_repo.pull(remote_branch_name, istream=PIPE)
@@ -45,13 +45,13 @@ class RemoteRepo(object):
     def pull_and_push_changes(self, branch, remote_ref):
         # print remote_ref#gitbucket/20130313_diagram_rewrite
         if branch.name in self.get_ref_name(remote_ref):
-            log.info('remote commit: ', remote_ref.commit, remote_ref.commit.message)
+            log.info('remote commit: %s, %s' % (remote_ref.commit, remote_ref.commit.message))
             self.pull(self.get_ref_name(remote_ref))
             if branch.commit != remote_ref.commit:
                 log.info('different to remote')
-                log.info('latest remote log:', remote_ref.commit.message)
+                log.info('latest remote log: %s' % unicode(remote_ref.commit.message))
                 self.push(branch, remote_ref)
-                log.info('latest local log:', branch.commit.message)
+                log.info('latest local log: %s' % branch.commit.message)
                 self.sync_msg = "%s updated to: %s" % (self.remote_repo.url, remote_ref.commit.message)
 
 
@@ -66,10 +66,10 @@ class Puller(object):
     def pull_all(self):
         r = git.Repo(self.full_path)
         local_active_branch = r.active_branch
-        log.info('current branch:', local_active_branch.name, local_active_branch.commit)
+        log.info('current branch: %s, %s' % (local_active_branch.name, local_active_branch.commit))
 
         for remote_repo in r.remotes:
-            log.info("remote repo", remote_repo)
+            log.info("remote repo: %s" % unicode(remote_repo))
             if self.is_proxy_needed(remote_repo):
                 self.set_proxy_env()
             else:
@@ -88,7 +88,8 @@ class Puller(object):
     def set_proxy_env(self):
         os.environ["https_proxy"] = self.https_proxy_server
 
-    def unset_proxy_env(self):
+    @staticmethod
+    def unset_proxy_env():
         try:
             del os.environ["https_proxy"]
         except:

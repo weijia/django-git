@@ -138,7 +138,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         pull_and_notify_user(git_folder)
         print "auto pull and push done"
         git_config_folder = os.path.join(git_folder, ".git")
-        if not os.path.isdir(git_config_folder):
+        if os.path.exists(git_config_folder) and not os.path.isdir(git_config_folder):
             git_config_file = open(git_config_folder, 'r')
             real_git_config_folder = git_config_file.readline().split(": ")[1].replace("\r", "").replace("\n", "")
             git_config_folder = os.path.abspath(os.path.join(git_folder, real_git_config_folder))
