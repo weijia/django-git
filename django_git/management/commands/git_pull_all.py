@@ -67,7 +67,7 @@ class GitFolderChangeNotifier(ChangeNotifier):
 
 # noinspection PyAbstractClass
 class GitMsgHandler(MsgProcessCommandBase):
-    DELAY_PULL_SECONDS = 30
+    DELAY_PULL_SECONDS = 5
 
     def __init__(self):
         super(GitMsgHandler, self).__init__()
@@ -96,6 +96,7 @@ class GitMsgHandler(MsgProcessCommandBase):
 
     # noinspection PyMethodMayBeStatic
     def process_msg(self, msg):
+        print msg
         self.msg_handlers[msg["command"]](msg)
 
     def process_delayed_pull(self, msg):
@@ -116,7 +117,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         if not (changed_path in self.path_updated):
             self.path_updated[changed_path] = datetime.datetime.now()
         # self.is_more_folder_msg_received = True
-        thread.start_new_thread(send_delayed_msg, (self.get_channel(),))
+        thread.start_new_thread(send_delayed_msg, (self.get_channel(), self.DELAY_PULL_SECONDS+5))
 
     @staticmethod
     def update_git(path):
