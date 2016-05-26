@@ -7,7 +7,7 @@ import thread
 import datetime
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
 from iconizer.gui_client.notification_service_client import NotificationServiceClient
-from libtool import format_path
+from ufs_tools import format_path
 from tagging.models import Tag
 from tagging.models import TaggedItem
 from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME

@@ -8,7 +8,7 @@ import git
 
 from django_git.management.commands.git_pull_utils.connectivity_manager import ConnectivityManager
 from djangoautoconf.local_key_manager import get_local_key
-from libtool.app_framework import find_app_in_folders
+from ufs_tools.app_framework import find_app_in_folders
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +34,8 @@ class RemoteRepo(object):
             self.remote_repo.pull(remote_branch_name, istream=PIPE)
         except AssertionError:
             log.error('assert error may be caused by inconsistent log format between git and gitpython')
+        except git.GitCommandError, e:
+            log.error("%s: GitCommandError: %s" % (self.remote_repo.url, str(e)))
         except Exception, e:
             traceback.print_exc()
 
@@ -50,7 +52,8 @@ class RemoteRepo(object):
         if branch.name in self.get_ref_name(remote_ref):
             log.info('remote commit: %s, %s' % (remote_ref.commit, remote_ref.commit.message))
             self.pull(self.get_ref_name(remote_ref))
-            if branch.commit != remote_ref.commit:
+            if branch.commit.hexsha != remote_ref.commit.hexsha:
+                print branch.commit.hexsha, remote_ref.commit.hexsha
                 log.info('different to remote')
                 log.info('latest remote log: %s' % unicode(remote_ref.commit.message))
                 self.push(branch, remote_ref)
@@ -129,8 +132,7 @@ class Puller(object):
         return True
 
     def process_remote_repo(self, branch, remote_repo):
-        # if self.is_valid_url(remote_repo.url) and (not self.is_ignored(remote_repo.url)):
-        if not self.is_ignored(remote_repo.url):
+        if self.is_valid_url(remote_repo.url) and (not self.is_ignored(remote_repo.url)):
             if self.is_repo_ref_valid(remote_repo):
                 for remote_ref in remote_repo.refs:
                     log.info("remote branch:" + unicode(remote_ref).encode('utf8', 'replace'))
@@ -143,7 +145,7 @@ class Puller(object):
                         except:
                             pass
         else:
-            log.error("%s ignored" % remote_repo.url)
+            log.error("No valid pulling_repo url, repo is not synchronized")
 
 try:
     from repo import proj_list, git_path
@@ -155,7 +157,7 @@ except:
 
 def add_git_to_path():
     folders = get_local_key("git_path.git_folder", "django_git")
-    # folders.append('C:\\Program Files (x86)\\Git\\bin')
+    folders.append('C:\\Program Files (x86)\\Git\\bin')
     os.environ['PATH'] += ";"+find_app_in_folders(folders, "git.exe")
     # print os.environ['PATH']
 
