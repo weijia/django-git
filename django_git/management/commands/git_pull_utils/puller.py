@@ -39,8 +39,11 @@ class RemoteRepo(object):
 
     def push(self, branch, remote_ref):
         log.info('pushing changes')
-        self.remote_repo.push(remote_ref.__str__().split('/')[-1],
-                              istream=PIPE)
+        try:
+            self.remote_repo.push(remote_ref.__str__().split('/')[-1],
+                                  istream=PIPE)
+        except Exception, e:
+            traceback.print_exc()
 
     def pull_and_push_changes(self, branch, remote_ref):
         # print remote_ref#gitbucket/20130313_diagram_rewrite
@@ -126,7 +129,8 @@ class Puller(object):
         return True
 
     def process_remote_repo(self, branch, remote_repo):
-        if self.is_valid_url(remote_repo.url) and (not self.is_ignored(remote_repo.url)):
+        # if self.is_valid_url(remote_repo.url) and (not self.is_ignored(remote_repo.url)):
+        if not self.is_ignored(remote_repo.url):
             if self.is_repo_ref_valid(remote_repo):
                 for remote_ref in remote_repo.refs:
                     log.info("remote branch:" + unicode(remote_ref).encode('utf8', 'replace'))
@@ -139,7 +143,7 @@ class Puller(object):
                         except:
                             pass
         else:
-            log.error("No valid pulling_repo url, repo is not synchronized")
+            log.error("%s ignored" % remote_repo.url)
 
 try:
     from repo import proj_list, git_path
@@ -151,7 +155,7 @@ except:
 
 def add_git_to_path():
     folders = get_local_key("git_path.git_folder", "django_git")
-    folders.append('C:\\Program Files (x86)\\Git\\bin')
+    # folders.append('C:\\Program Files (x86)\\Git\\bin')
     os.environ['PATH'] += ";"+find_app_in_folders(folders, "git.exe")
     # print os.environ['PATH']
 
