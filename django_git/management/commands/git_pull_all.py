@@ -1,3 +1,4 @@
+import logging
 import os
 import traceback
 from Queue import Queue
@@ -60,6 +61,7 @@ class GitFolderChangeNotifier(ChangeNotifier):
         # super(GitFolderChangeNotifier, self).callback(path_to_watch, relative_path, action)
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
+        logging.getLogger(__file__).info(path_to_watch, relative_path, action)
         print path_to_watch, relative_path, action
         if True:  # relative_path == "heads":
             self.channel.put_msg(msg)
@@ -96,7 +98,7 @@ class GitMsgHandler(MsgProcessCommandBase):
 
     # noinspection PyMethodMayBeStatic
     def process_msg(self, msg):
-        print msg
+        logging.getLogger(__file__).info(msg)
         self.msg_handlers[msg["command"]](msg)
 
     def process_delayed_pull(self, msg):
@@ -139,7 +141,7 @@ class GitMsgHandler(MsgProcessCommandBase):
         if not os.path.exists(git_folder):
             return
         pull_and_notify_user(git_folder)
-        print "auto pull and push done"
+        logging.getLogger(__file__).info("auto pull and push done")
         git_config_folder = os.path.join(git_folder, ".git")
         if os.path.exists(git_config_folder) and not os.path.isdir(git_config_folder):
             git_config_file = open(git_config_folder, 'r')
