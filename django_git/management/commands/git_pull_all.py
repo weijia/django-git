@@ -69,7 +69,7 @@ class GitFolderChangeNotifier(ChangeNotifier):
 
 # noinspection PyAbstractClass
 class GitMsgHandler(MsgProcessCommandBase):
-    DELAY_PULL_SECONDS = 5
+    DELAY_PULL_SECONDS = 3
 
     def __init__(self):
         super(GitMsgHandler, self).__init__()
