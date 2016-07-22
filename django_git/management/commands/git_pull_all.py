@@ -61,7 +61,7 @@ class GitFolderChangeNotifier(ChangeNotifier):
         # super(GitFolderChangeNotifier, self).callback(path_to_watch, relative_path, action)
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
-        logging.getLogger(__file__).info(path_to_watch, relative_path, action)
+        logging.getLogger(__file__).info("%s %s %s" % (path_to_watch, relative_path, action))
         print path_to_watch, relative_path, action
         if True:  # relative_path == "heads":
             self.channel.put_msg(msg)
