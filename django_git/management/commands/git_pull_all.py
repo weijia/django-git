@@ -6,6 +6,9 @@ from UserDict import UserDict
 import time
 import thread
 import datetime
+
+from django.contrib.auth.models import User
+
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
 from djangoautoconf.cmd_handler_base.msg_process_cmd_base import DjangoCmdBase
 from iconizer.django_in_iconizer.django_cmd_with_msg import DjangoCmdWithMsg
@@ -134,7 +137,8 @@ class GitMsgHandler(DjangoCmdWithMsg):
             # path will be in file://xxxxx format
             path = get_full_path_from_url(url)
             if os.path.exists(os.path.join(path, ".git")):
-                append_tags_and_description_to_url(self.get_username(), url, "git", "GIT repository")
+                user = User.objects.get(username=self.get_username())
+                append_tags_and_description_to_url(user, url, "git", "GIT repository")
                 self.update_git(path)
 
     def register_dir_change_notification(self, msg):
