@@ -7,6 +7,8 @@ import time
 import thread
 import datetime
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
+from djangoautoconf.cmd_handler_base.msg_process_cmd_base import DjangoCmdBase
+from iconizer.django_in_iconizer.django_cmd_with_msg import DjangoCmdWithMsg
 from iconizer.gui_client.notification_service_client import NotificationServiceClient
 from ufs_tools import format_path
 from tagging.models import Tag
@@ -15,7 +17,6 @@ from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME
 from iconizer.msg_service.msg_def.file_url_list_msg import FileUrlListMsg, DelayedMsg, DropEventMsg, \
     TagEnumeratorMsg, FolderChangeNotification, send_delayed_msg
 from obj_sys.obj_tagging import append_tags_and_description_to_url
-from universal_clipboard.management.commands.cmd_handler_base.msg_process_cmd_base import MsgProcessCommandBase
 from django_git.management.commands.git_pull_utils.puller import Puller
 
 
@@ -61,15 +62,15 @@ class GitFolderChangeNotifier(ChangeNotifier):
         # super(GitFolderChangeNotifier, self).callback(path_to_watch, relative_path, action)
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
+        logging.getLogger(__file__).debug("%s %s %s" % (path_to_watch, relative_path, action))
         print path_to_watch, relative_path, action
-        logging.getLogger(__file__).debug(path_to_watch, relative_path, action)
         if True:  # relative_path == "heads":
             self.channel.put_msg(msg)
 
 
 # noinspection PyAbstractClass
-class GitMsgHandler(MsgProcessCommandBase):
-    DELAY_PULL_SECONDS = 5
+class GitMsgHandler(DjangoCmdWithMsg):
+    DELAY_PULL_SECONDS = 3
 
     def __init__(self):
         super(GitMsgHandler, self).__init__()
@@ -133,7 +134,7 @@ class GitMsgHandler(MsgProcessCommandBase):
             # path will be in file://xxxxx format
             path = get_full_path_from_url(url)
             if os.path.exists(os.path.join(path, ".git")):
-                append_tags_and_description_to_url(self.admin_user, url, "git", "GIT repository")
+                append_tags_and_description_to_url(self.get_username(), url, "git", "GIT repository")
                 self.update_git(path)
 
     def register_dir_change_notification(self, msg):
