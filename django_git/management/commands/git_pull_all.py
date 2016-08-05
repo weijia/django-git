@@ -6,8 +6,12 @@ from UserDict import UserDict
 import time
 import thread
 import datetime
+
+from django.contrib.auth.models import User
+
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
 from djangoautoconf.cmd_handler_base.msg_process_cmd_base import DjangoCmdBase
+from iconizer.django_in_iconizer.django_cmd_with_msg import DjangoCmdWithMsg
 from iconizer.gui_client.notification_service_client import NotificationServiceClient
 from ufs_tools import format_path
 from tagging.models import Tag
@@ -61,14 +65,14 @@ class GitFolderChangeNotifier(ChangeNotifier):
         # super(GitFolderChangeNotifier, self).callback(path_to_watch, relative_path, action)
         msg = FolderChangeNotification()
         msg["path"] = path_to_watch
-        logging.getLogger(__file__).info("%s %s %s" % (path_to_watch, relative_path, action))
+        logging.getLogger(__file__).error("%s %s %s" % (path_to_watch, relative_path, action))
         print path_to_watch, relative_path, action
         if True:  # relative_path == "heads":
             self.channel.put_msg(msg)
 
 
 # noinspection PyAbstractClass
-class GitMsgHandler(DjangoCmdBase):
+class GitMsgHandler(DjangoCmdWithMsg):
     DELAY_PULL_SECONDS = 3
 
     def __init__(self):
@@ -98,7 +102,7 @@ class GitMsgHandler(DjangoCmdBase):
 
     # noinspection PyMethodMayBeStatic
     def process_msg(self, msg):
-        logging.getLogger(__file__).info(msg)
+        logging.getLogger(__file__).error(msg)
         self.msg_handlers[msg["command"]](msg)
 
     def process_delayed_pull(self, msg):
@@ -133,7 +137,8 @@ class GitMsgHandler(DjangoCmdBase):
             # path will be in file://xxxxx format
             path = get_full_path_from_url(url)
             if os.path.exists(os.path.join(path, ".git")):
-                append_tags_and_description_to_url(self.admin_user, url, "git", "GIT repository")
+                user = User.objects.get(username=self.get_username())
+                append_tags_and_description_to_url(user, url, "git", "GIT repository")
                 self.update_git(path)
 
     def register_dir_change_notification(self, msg):
