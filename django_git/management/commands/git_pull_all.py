@@ -10,6 +10,7 @@ import datetime
 from django.contrib.auth.models import User
 
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
+from django_git.models import RepoInfo
 from djangoautoconf.cmd_handler_base.msg_process_cmd_base import DjangoCmdBase
 from iconizer.django_in_iconizer.django_cmd_with_msg import DjangoCmdWithMsg
 from iconizer.gui_client.notification_service_client import NotificationServiceClient
@@ -136,6 +137,7 @@ class GitMsgHandler(DjangoCmdWithMsg):
             # path = msg["path"]
             # path will be in file://xxxxx format
             path = get_full_path_from_url(url)
+            RepoInfo.objects.get_or_create(full_path=path)
             if os.path.exists(os.path.join(path, ".git")):
                 user = User.objects.get(username=self.get_username())
                 append_tags_and_description_to_url(user, url, "git", "GIT repository")
