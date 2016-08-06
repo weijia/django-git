@@ -10,3 +10,4 @@ class RepoInfo(TimeStampedModel):
     remote_last_updated = models.DateTimeField(null=True, blank=True)
     local_last_updated = models.DateTimeField(null=True, blank=True)
     is_clean = models.BooleanField(default=True)
+    is_last_pull_success = models.BooleanField(default=True)
