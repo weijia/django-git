@@ -21,7 +21,7 @@ from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME
 from iconizer.msg_service.msg_def.file_url_list_msg import FileUrlListMsg, DelayedMsg, DropEventMsg, \
     TagEnumeratorMsg, FolderChangeNotification, send_delayed_msg
 from obj_sys.obj_tagging import append_tags_and_description_to_url
-from django_git.management.commands.git_pull_utils.puller import Puller
+from django_git.management.commands.git_pull_utils.puller import GitSynchoronizer
 
 
 def get_full_path_from_url(url):
@@ -48,9 +48,9 @@ def tag_enumerator(channel, tag_name="git"):
 
 def pull_and_notify_user(path):
     print "processing:", path
-    p = Puller(path, NotificationServiceClient().notify)
+    p = GitSynchoronizer(path, NotificationServiceClient().notify)
     try:
-        p.pull_all()
+        p.pull_all_branches()
         print "pull and push done"
     except:
         traceback.print_exc()
