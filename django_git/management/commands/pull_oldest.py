@@ -19,7 +19,7 @@ class GitPullOnce(DjangoCmdBase):
                 success = False
                 try:
                     p.pull_all_branches()
-                    print "pull and push done"
+                    print "pull and push done", p.sync_msg
                     success = True
                 except:
                     traceback.print_exc()
