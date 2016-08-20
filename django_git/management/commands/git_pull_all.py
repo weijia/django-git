@@ -10,6 +10,7 @@ import datetime
 from django.contrib.auth.models import User
 
 from django_git.management.commands.git_pull_utils.change_notifier import ChangeNotifier
+from django_git.management.commands.git_pull_utils.git_synchronizer import GitSynchronizer
 from django_git.models import RepoInfo
 from djangoautoconf.cmd_handler_base.msg_process_cmd_base import DjangoCmdBase
 from iconizer.django_in_iconizer.django_cmd_with_msg import DjangoCmdWithMsg
@@ -21,7 +22,6 @@ from iconizer.iconizer_consts import ICONIZER_SERVICE_NAME
 from iconizer.msg_service.msg_def.file_url_list_msg import FileUrlListMsg, DelayedMsg, DropEventMsg, \
     TagEnumeratorMsg, FolderChangeNotification, send_delayed_msg
 from obj_sys.obj_tagging import append_tags_and_description_to_url
-from django_git.management.commands.git_pull_utils.puller import GitSynchoronizer
 
 
 def get_full_path_from_url(url):
@@ -48,7 +48,7 @@ def tag_enumerator(channel, tag_name="git"):
 
 def pull_and_notify_user(path):
     print "processing:", path
-    p = GitSynchoronizer(path, NotificationServiceClient().notify)
+    p = GitSynchronizer(path, NotificationServiceClient().notify)
     try:
         p.pull_all_branches()
         print "pull and push done"
