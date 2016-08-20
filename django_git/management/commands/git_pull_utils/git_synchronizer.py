@@ -51,16 +51,28 @@ class RemoteRepo(object):
     def pull_and_push_changes(self, branch, remote_ref):
         # print remote_ref#gitbucket/20130313_diagram_rewrite
         if branch.name in self.get_ref_name(remote_ref):
+            old_commit_hexsha = branch.commit.hexsha
             log.info('remote commit: %s, %s' % (remote_ref.commit, remote_ref.commit.message))
             self.pull(self.get_ref_name(remote_ref))
+
+            if branch.commit.hexsha != old_commit_hexsha:
+                msg = '%s: new code pulled: %s' % (self.remote_repo.url, branch.commit.message)
+                self.report_result(msg)
+
             if branch.commit.hexsha != remote_ref.commit.hexsha:
-                print branch.commit.hexsha, remote_ref.commit.hexsha
                 log.info('different to remote')
                 log.info('latest remote log: %s' % unicode(remote_ref.commit.message))
                 self.push(branch, remote_ref)
+
                 if branch.commit.hexsha == remote_ref.commit.hexsha:
-                    log.info('latest local log: %s' % branch.commit.message)
-                    self.sync_msg = "%s updated to: %s" % (self.remote_repo.url, remote_ref.commit.message)
+                    msg = '%s sync done. Latest local log: %s' % (self.remote_repo.url, branch.commit.message)
+                    self.report_result(msg)
+                else:
+                    msg = '%s sync failed.' % remote_ref.repo.working_dir
+
+    def report_result(self, message):
+        log.info(message)
+        self.sync_msg = message
 
 
 class GitSynchronizer(object):
