@@ -180,7 +180,8 @@ def add_git_to_path():
     # print os.environ['PATH']
 
 
-add_git_to_path()
+if os.name == 'nt':
+    add_git_to_path()
 
 
 def main():
