@@ -123,7 +123,7 @@ class GitMsgHandler(DjangoCmdWithMsg):
         if not (changed_path in self.path_updated):
             self.path_updated[changed_path] = datetime.datetime.now()
         # self.is_more_folder_msg_received = True
-        thread.start_new_thread(send_delayed_msg, (self.get_channel(), self.DELAY_PULL_SECONDS+5))
+        thread.start_new_thread(send_delayed_msg, (self.get_channel(), self.DELAY_PULL_SECONDS))
 
     @staticmethod
     def update_git(path):
