@@ -1,5 +1,4 @@
 from django_git.models import RepoInfo
-from iconizer.msg_service.msg_def.file_url_list_msg import TagEnumeratorMsg
 from tagging.models import Tag, TaggedItem
 
 
