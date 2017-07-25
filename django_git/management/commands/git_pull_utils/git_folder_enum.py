@@ -14,6 +14,6 @@ def enum_git_repo(tag_name="git"):
                 continue
             RepoInfo.objects.get_or_create(full_path=obj.full_path)
 
-        for repo in RepoInfo.objects.all().order_by("last_checked"):
-            yield repo
+    for repo in RepoInfo.objects.all().order_by("last_checked"):
+        yield repo
 
