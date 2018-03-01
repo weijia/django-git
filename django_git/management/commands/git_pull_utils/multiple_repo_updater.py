@@ -18,7 +18,7 @@ except:
 def pull_all_in_enumerable(enum_method):
     for repo in enum_method():
         if os.path.exists(repo.full_path):
-            p = GitSynchronizer(repo.full_path, notification_method())
+            p = GitSynchronizer(repo.full_path, notification_method)
             success = False
             try:
                 p.pull_all_branches()
